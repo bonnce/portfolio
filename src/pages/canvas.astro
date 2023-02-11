@@ -1,0 +1,69 @@
+---
+  
+---
+
+<canvas id="cloud-container"></canvas>
+
+<script >
+  const {innerHeight, innerWidth} = window
+  const canvas = document.getElementById("cloud-container") as HTMLCanvasElement
+  const ctx = canvas?.getContext('2d')
+  canvas.height = innerHeight
+  canvas.width = innerWidth
+  // const rect = [
+  //       -20,
+  //       20,
+  //       100,
+  //       50,
+  //       // fill: 'green',
+  //       // stroke: 'black',
+  //       // strokeWidth: 4,
+  //     ]
+
+  class Cloud {
+    constructor(x, y, height, width){
+      this.x = x
+      this.y = y
+      this.height = height
+      this.width = width
+    }
+  }
+
+  const vel = 125;
+  const period = 2000;
+  let aux = 0
+  // const anim = new Konva.Animation(function (frame) {
+  //   if(frame){
+      
+  //     const rate = ((frame.time  * Math.PI) / period) * vel      
+  //     const distance = stage.width()+100
+  //     const restart = Math.floor(rate / distance)
+  //     const move = rate - (distance * restart)
+  //     if(restart > aux){
+  //       rect.y(Math.random() * stage.height())
+  //       aux = restart
+  //     }
+  //     rect.x(move - 100);
+  //   }
+  // }, layer);
+  let lastTime = 0
+  const fps = 60
+  const frameDur = 1000/ fps
+  function animate(time: number){
+    let elapsedTime = time - lastTime;
+    if (elapsedTime > frameDur) {
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw
+      ctx?.fillRect(-20,
+        20,
+        100,
+        50)
+
+      lastTime = time;
+    }
+    requestAnimationFrame(animate)
+  }
+
+  requestAnimationFrame(animate)
+</script>
