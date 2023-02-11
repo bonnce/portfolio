@@ -1,0 +1,47 @@
+---
+  
+---
+
+<div id="container"></div>
+
+<script >
+  import Konva from 'konva'
+  const {innerHeight, innerWidth} = window
+  const stage = new Konva.Stage({
+    container:'container',
+    width: innerWidth,
+    height: innerHeight
+  })
+  const layer = new Konva.Layer()
+  const rect = new Konva.Rect({
+        x: -20,
+        y: 20,
+        width: 100,
+        height: 50,
+        fill: 'green',
+        stroke: 'black',
+        strokeWidth: 4,
+      });
+  layer.add(rect)
+  stage.add(layer)
+
+  const vel = 125;
+  const period = 2000;
+  let aux = 0
+  const anim = new Konva.Animation(function (frame) {
+    if(frame){
+      
+      const rate = ((frame.time  * Math.PI) / period) * vel      
+      const distance = stage.width()+100
+      const restart = Math.floor(rate / distance)
+      const move = rate - (distance * restart)
+      if(restart > aux){
+        rect.y(Math.random() * stage.height())
+        aux = restart
+      }
+      rect.x(move - 100);
+    }
+  }, layer);
+
+  anim.start();
+</script>
