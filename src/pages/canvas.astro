@@ -21,17 +21,38 @@
   //     ]
 
   class Cloud {
-    constructor(x, y, height, width){
+    weight:number
+    xInit:number
+    yInit:number
+    x:number
+    y:number
+    width:number
+    height:number
+    color:string
+    constructor(x:number, y:number, height:number, width:number, weight:number, color:string){
+      this.xInit = x
+      this.yInit = y
       this.x = x
       this.y = y
       this.height = height
       this.width = width
+      this.color = color
+      this.weight = weight
+    }
+
+    draw(ctx: CanvasRenderingContext2D){
+      ctx.fillStyle = this.color
+      ctx.fillRect(this.x,this.y, this.width, this.height)
+    }
+
+    update(ctx: CanvasRenderingContext2D, x?:number, y?:number){
+      this.draw(ctx)
+      if(x) this.x = x
+      if(y) this.y = y
     }
   }
 
-  const vel = 125;
-  const period = 2000;
-  let aux = 0
+  
   // const anim = new Konva.Animation(function (frame) {
   //   if(frame){
       
@@ -46,19 +67,37 @@
   //     rect.x(move - 100);
   //   }
   // }, layer);
+  const vel = 150;
+  const period = 2000;
+  let aux = 0
   let lastTime = 0
-  const fps = 60
-  const frameDur = 1000/ fps
+  const fps = 165
+  const frameDur = period/ fps
+  
+
+  const clouds = Array(10).fill(0).map(i => {
+      return new Cloud(Math.random() * canvas.width, Math.random() * canvas.height, 40, 100, Math.random(), 'green')
+    })
+
   function animate(time: number){
     let elapsedTime = time - lastTime;
     if (elapsedTime > frameDur) {
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
       
       // Draw
-      ctx?.fillRect(-20,
-        20,
-        100,
-        50)
+      if(ctx){
+        clouds.forEach(c => {
+          const rate = (time * c.weight * Math.PI / period) * vel + c.xInit
+          const distance = canvas.width + 100 
+          const restart = Math.floor(rate / distance)
+          const move = rate - (distance * restart)
+          if(restart > aux){
+            c.update(ctx, undefined, Math.random() * canvas.height)
+            aux = restart
+          }
+          c.update(ctx, move - 100);
+        })
+      }
 
       lastTime = time;
     }
