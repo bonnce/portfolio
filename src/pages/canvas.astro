@@ -10,99 +10,84 @@
   const ctx = canvas?.getContext('2d')
   canvas.height = innerHeight
   canvas.width = innerWidth
-  // const rect = [
-  //       -20,
-  //       20,
-  //       100,
-  //       50,
-  //       // fill: 'green',
-  //       // stroke: 'black',
-  //       // strokeWidth: 4,
-  //     ]
+
+  interface iPosition {
+    x:number,
+    y:number
+  }
+
+  let mouse: Partial<iPosition>
+
+  canvas.addEventListener('mousemove', (event)=>{
+    mouse = {x: event.clientX, y: event.clientY}
+  })
 
   class Cloud {
-    weight:number
-    xInit:number
-    yInit:number
-    x:number
-    y:number
+    position:iPosition
+    initPos: iPosition
+    velocity: Partial<iPosition>
     width:number
     height:number
     color:string
-    constructor(x:number, y:number, height:number, width:number, weight:number, color:string){
-      this.xInit = x
-      this.yInit = y
-      this.x = x
-      this.y = y
+    constructor(position: iPosition, velocity: Partial<iPosition>, height:number, width:number, color:string){
+      this.initPos = position
+      this.position = position
+      this.velocity = velocity
       this.height = height
       this.width = width
       this.color = color
-      this.weight = weight
     }
 
     draw(ctx: CanvasRenderingContext2D){
       ctx.fillStyle = this.color
-      ctx.fillRect(this.x,this.y, this.width, this.height)
+      ctx.fillRect(this.position.x,this.position.y, this.width, this.height)
     }
 
-    update(ctx: CanvasRenderingContext2D, x?:number, y?:number){
-      this.draw(ctx)
-      if(x) this.x = x
-      if(y) this.y = y
+    update(){
+      if(this.velocity.x){
+        if(this.position.x > canvas.width){
+          this.position.x = -this.width
+          this.position.y = Math.random() * canvas.height
+        }
+        this.position.x += this.velocity.x
+      } 
+      if( mouse?.x && mouse?.y){
+
+        const mouseDistanceX = Math.abs(this.position.x + this.width/2 - mouse.x)
+        const centerPosY = this.position.y + this.height / 2
+        const mouseDistanceY = centerPosY - mouse.y
+        if(mouseDistanceX < this.width && centerPosY < mouse.y + this.height && centerPosY > mouse.y - this.height) {
+          this.position.y += mouseDistanceY * .5
+        }
+      }
     }
   }
-
-  
-  // const anim = new Konva.Animation(function (frame) {
-  //   if(frame){
-      
-  //     const rate = ((frame.time  * Math.PI) / period) * vel      
-  //     const distance = stage.width()+100
-  //     const restart = Math.floor(rate / distance)
-  //     const move = rate - (distance * restart)
-  //     if(restart > aux){
-  //       rect.y(Math.random() * stage.height())
-  //       aux = restart
-  //     }
-  //     rect.x(move - 100);
-  //   }
-  // }, layer);
-  const vel = 150;
-  const period = 2000;
-  let aux = 0
-  let lastTime = 0
-  const fps = 165
-  const frameDur = period/ fps
   
 
   const clouds = Array(10).fill(0).map(i => {
-      return new Cloud(Math.random() * canvas.width, Math.random() * canvas.height, 40, 100, Math.random(), 'green')
+      const pos = {
+        x:Math.random() * canvas.width,
+        y:Math.random() * canvas.height
+      }
+      const vel = {
+        x: Math.random() * 4 + 2,
+      }
+      return new Cloud(pos, vel, 40, 100, 'green')
     })
 
-  function animate(time: number){
-    let elapsedTime = time - lastTime;
-    if (elapsedTime > frameDur) {
-      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+  function animate(){
+    if(ctx){
+        
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Draw
-      if(ctx){
-        clouds.forEach(c => {
-          const rate = (time * c.weight * Math.PI / period) * vel + c.xInit
-          const distance = canvas.width + 100 
-          const restart = Math.floor(rate / distance)
-          const move = rate - (distance * restart)
-          if(restart > aux){
-            c.update(ctx, undefined, Math.random() * canvas.height)
-            aux = restart
-          }
-          c.update(ctx, move - 100);
-        })
-      }
-
-      lastTime = time;
+      clouds.forEach(c => {
+        c.update();
+        c.draw(ctx);
+      })
     }
     requestAnimationFrame(animate)
   }
 
-  requestAnimationFrame(animate)
+  animate()
 </script>
