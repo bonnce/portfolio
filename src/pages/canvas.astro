@@ -1,93 +1,54 @@
----
-  
----
-
 <canvas id="cloud-container"></canvas>
+<canvas id="bubble-container"></canvas>
 
 <script >
-  const {innerHeight, innerWidth} = window
-  const canvas = document.getElementById("cloud-container") as HTMLCanvasElement
-  const ctx = canvas?.getContext('2d')
-  canvas.height = innerHeight
-  canvas.width = innerWidth
+  import Bubble from "../script/bubble";
+  import Canvas from "../script/canvas";
+  import Cloud from "../script/cloud";
 
-  interface iPosition {
-    x:number,
-    y:number
-  }
+  import { generateAssets, loadAsset } from "../script/utils";
 
-  let mouse: Partial<iPosition>
+  window.addEventListener('load', ()=>{
+    // clouds
+    const CLOUDLENGTH = 2
 
-  canvas.addEventListener('mousemove', (event)=>{
-    mouse = {x: event.clientX, y: event.clientY}
-  })
-
-  class Cloud {
-    position:iPosition
-    initPos: iPosition
-    velocity: Partial<iPosition>
-    width:number
-    height:number
-    color:string
-    constructor(position: iPosition, velocity: Partial<iPosition>, height:number, width:number, color:string){
-      this.initPos = position
-      this.position = position
-      this.velocity = velocity
-      this.height = height
-      this.width = width
-      this.color = color
-    }
-
-    draw(ctx: CanvasRenderingContext2D){
-      ctx.fillStyle = this.color
-      ctx.fillRect(this.position.x,this.position.y, this.width, this.height)
-    }
-
-    update(){
-      if(this.velocity.x){
-        if(this.position.x > canvas.width){
-          this.position.x = -this.width
-          this.position.y = Math.random() * canvas.height
-        }
-        this.position.x += this.velocity.x
-      } 
-      if( mouse?.x && mouse?.y){
-
-        const mouseDistanceX = Math.abs(this.position.x + this.width/2 - mouse.x)
-        const centerPosY = this.position.y + this.height / 2
-        const mouseDistanceY = centerPosY - mouse.y
-        if(mouseDistanceX < this.width && centerPosY < mouse.y + this.height && centerPosY > mouse.y - this.height) {
-          this.position.y += mouseDistanceY * .5
-        }
-      }
-    }
-  }
-  
-
-  const clouds = Array(10).fill(0).map(i => {
-      const pos = {
-        x:Math.random() * canvas.width,
-        y:Math.random() * canvas.height
-      }
-      const vel = {
-        x: Math.random() * 4 + 2,
-      }
-      return new Cloud(pos, vel, 40, 100, 'green')
+    const canvas = new Canvas('cloud-container')
+    canvas.init()
+    
+    const assets = generateAssets(CLOUDLENGTH, 'cloud')
+    const images = assets.map(asset => loadAsset(asset))
+    const clouds = Array(10).fill(0).map(i => {
+      return new Cloud(canvas.canvas, images[Math.floor(Math.random() * CLOUDLENGTH)])
     })
 
-  function animate(){
-    if(ctx){
-        
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw
+    canvas.run(()=>{
       clouds.forEach(c => {
-        c.update();
-        c.draw(ctx);
+        if(canvas.ctx){
+          c.update();
+          c.draw(canvas.ctx);
+        }
       })
-    }
-    requestAnimationFrame(animate)
-  }
+    })
 
-  animate()
+    // bubble
+    const canvasBubble = new Canvas('bubble-container')
+    canvasBubble.init()
+    canvasBubble.getMouseAxis()
+    const bubbles = Array(6).fill(0).map(i => {
+        return new Bubble(canvasBubble.canvas)
+    })
+    canvasBubble.run(()=>{
+      bubbles.forEach((b, i)=>{
+        if(canvasBubble.ctx && canvasBubble.mouse){
+          const mouse = {
+            x: canvasBubble.mouse.x,
+            y: canvasBubble.mouse.y
+          }
+          b.update(mouse, canvasBubble.ctx, i)          
+        }
+      })
+    })
+  })
+
+  
 </script>
